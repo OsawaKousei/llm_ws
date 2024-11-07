@@ -1,0 +1,40 @@
+version: "3"
+
+services:
+  llm_ws:
+    container_name: llm_ws
+    build:
+      context: .
+      args:
+        - USER_NAME=${USER_NAME}
+        - GROUP_NAME=${GROUP_NAME}
+        - PASSWORD=${PASSWORD}
+        - UID=${UID}
+        - GID=${GID}
+        - GIT_USER_NAME=${GIT_USER_NAME}
+        - GIT_USER_EMAIL=${GIT_USER_EMAIL}
+        - PYTHON_VERSION=${PYTHON_VERSION}
+        - CUDA_VERSION=${CUDA_VERSION}
+      dockerfile: Dockerfile
+    image: n622jwith/llm_ws:latest
+    environment:
+      - DISPLAY=${DISPLAY}
+      - "QT_X11_NO_MITSHM=1"
+    volumes:
+      # GUI
+      - /tmp/.X11-unix:/tmp/.X11-unix
+      - $HOME/.Xauthority/:/home/${USER_NAME}/.Xauthority:ro
+      # ssh key
+      - $HOME/.ssh:/home/${USER_NAME}/.ssh:ro
+      # workspace
+      - $HOME/ML/llm:/home/${USER_NAME}/llm_ws
+    hostname: llm_ws
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu ]
+    tty: true
+    user: "${UID}:${GID}"
