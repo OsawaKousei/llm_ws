@@ -106,15 +106,22 @@ RUN pyenv global ${PYTHON_VERSION}
 # copy requirements.txt
 COPY requirements.txt /home/${USER_NAME}/requirements.txt
 
-# Install pkgs
+# prepare pip
 RUN sudo add-apt-repository universe && \
     # ↑ prevent error from "Unable to locate package pip"
     sudo apt-get update -q && \
-    sudo apt install pip -y && \
-    pip install --upgrade pip setuptools
+    sudo apt install python3-pip -y && \
+    pip3 install --upgrade pip setuptools
 
+# create and activate venv
+RUN sudo apt install python3.10-venv -y && \
+    python3 -m venv /home/${USER_NAME}/.venv && \
+    echo "source /home/${USER_NAME}/.venv/bin/activate" >> ~/.bashrc && \
+    /bin/bash -c "source ~/.bashrc"
+
+# install python packages
 RUN cd /home/${USER_NAME} &&\
-    pip install -r requirements.txt
+    pip3 install -r requirements.txt
 
 # Set git user name and email
 RUN git config --global user.name ${GIT_USER_NAME} && \
