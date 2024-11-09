@@ -12,3 +12,6 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+# output dir
+outputs_unsup_simcse/

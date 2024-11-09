@@ -15,6 +15,9 @@
         "F": "Warning",
         "I": "Warning"
     },
+    "flake8.args": [
+        "--max-line-length=88"
+    ],
     "mypy-type-checker.args": [
         "--warn-return-any",
         "--no-implicit-optional",
