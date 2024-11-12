@@ -2,17 +2,10 @@ import logging
 from logging import Formatter, StreamHandler, getLogger
 
 from datasets import Dataset
-from model import unsup_model
-from prepare import (
-    eval_collate_fn,
-    test_dataset,
-    unsup_train_collate_fn,
-    unsup_train_dataset,
-    valid_dataset,
-)
+from prepare import eval_collate_fn
 from scipy.stats import spearmanr
 from torch.utils.data import DataLoader
-from transformers import AutoTokenizer, EvalPrediction, Trainer, TrainingArguments
+from transformers import EvalPrediction, Trainer, TrainingArguments
 
 # ログの設定
 if __name__ == "__main__":
@@ -70,35 +63,3 @@ class SimCSETrainer(Trainer):
             collate_fn=eval_collate_fn,
             pin_memory=True,
         )
-
-
-tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
-
-unsup_trainer = SimCSETrainer(
-    model=unsup_model,
-    args=unsup_training_args,
-    data_collator=unsup_train_collate_fn,
-    train_dataset=unsup_train_dataset,
-    eval_dataset=valid_dataset,
-    compute_metrics=compute_metrics,
-)
-
-# モデルのパラメータを連続的なメモリ領域に配置
-# 以下のエラーを回避するために追記
-# ValueError: You are trying to save a non contiguous tensor:
-for param in unsup_model.parameters():
-    param.data = param.data.contiguous()
-
-unsup_trainer.train()
-
-# 評価
-valid_result = unsup_trainer.evaluate(valid_dataset)
-test_result = unsup_trainer.evaluate(test_dataset)
-
-logger.info("valid_result: \n%s", valid_result)
-logger.info("test_result: \n%s", test_result)
-
-# モデルの保存
-encoder_path = "outputs_unsup_simcse/encoder"
-unsup_model.encoder.save_pretrained(encoder_path)
-tokenizer.save_pretrained(encoder_path)
