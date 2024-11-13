@@ -2,7 +2,7 @@ import logging
 from logging import Formatter, StreamHandler, getLogger
 
 import faiss
-import numpy as np
+from datasets import Dataset
 from text_embedding import embed_texts
 from transformers import AutoModel, AutoTokenizer
 
@@ -30,10 +30,14 @@ emb_dim = encorder.config.hidden_size
 index = faiss.IndexFlatIP(emb_dim)
 
 # ベクトルの読み込み
-dataset_path = "outputs/paragraph_embeddings"
-paragraph_dataset = np.load(dataset_path, allow_pickle=True)
+dataset_path = (
+    "src/sentence_embeddings/nearest_neighbor_search/outputs/paragraph_embeddings"
+)
+paragraph_dataset = Dataset.load_from_disk(dataset_path)
+# インデックスの追加
+paragraph_dataset.add_faiss_index(column="embeddings")
 
-query_text = "日本語は主に日本で話されている。"
+query_text = "アメリカ合衆国の首都"
 
 # 最近傍探索
 scores, retrieved_examples = paragraph_dataset.get_nearest_examples(

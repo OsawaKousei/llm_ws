@@ -19,19 +19,6 @@ if __name__ == "__main__":
 else:
     logger = getLogger("__main__").getChild(__name__)
 
-
-# データセットの読み込み
-paragraph_dataset = load_dataset("llm-book/jawiki-paragraphs", split="train")
-logger.info(paragraph_dataset)
-pprint(paragraph_dataset[0])
-pprint(paragraph_dataset[1])
-
-# 各記事の最初の段落を取得
-paragraph_dataset = paragraph_dataset.filter(lambda x: x["paragraph_index"] == 0)
-logger.info(paragraph_dataset)
-pprint(paragraph_dataset[0])
-pprint(paragraph_dataset[1])
-
 # モデルの読み込み
 model_path = (
     "src/sentence_embeddings/unsupervised_learning/outputs_unsup_simcse/encoder"
@@ -58,12 +45,29 @@ def embed_texts(texts: list[str]) -> np.ndarray:
     return emb
 
 
-paragraph_dataset = paragraph_dataset.map(
-    lambda x: {"embeddings": list(embed_texts(x["text"]))},
-    batched=True,
-)
-logger.info(paragraph_dataset)
-pprint(paragraph_dataset[0])
+if __name__ == "__main__":
 
-# ベクトルの保存
-paragraph_dataset.save_to_disk("outputs/paragraph_embeddings")
+    # データセットの読み込み
+    paragraph_dataset = load_dataset("llm-book/jawiki-paragraphs", split="train")
+    logger.info(paragraph_dataset)
+    pprint(paragraph_dataset[0])
+    pprint(paragraph_dataset[1])
+
+    # 各記事の最初の段落を取得
+    paragraph_dataset = paragraph_dataset.filter(lambda x: x["paragraph_index"] == 0)
+    logger.info(paragraph_dataset)
+    pprint(paragraph_dataset[0])
+    pprint(paragraph_dataset[1])
+
+    device = "cuda:0"
+    encorder.to(device)
+
+    paragraph_dataset = paragraph_dataset.map(
+        lambda x: {"embeddings": list(embed_texts(x["text"]))},
+        batched=True,
+    )
+    logger.info(paragraph_dataset)
+    pprint(paragraph_dataset[0])
+
+    # ベクトルの保存
+    paragraph_dataset.save_to_disk("outputs/paragraph_embeddings")

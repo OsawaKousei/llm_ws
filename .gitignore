@@ -16,6 +16,7 @@ venv.bak/
 # output dir
 outputs_unsup_simcse/
 outputs_sup_simcse/
+outputs/
 
 # model
 *.safetensors
