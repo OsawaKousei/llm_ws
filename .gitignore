@@ -17,6 +17,7 @@ venv.bak/
 outputs_unsup_simcse/
 outputs_sup_simcse/
 outputs/
+outputs_bpr/
 
 # model
 *.safetensors

@@ -35,32 +35,36 @@ pprint(valid_dataset[0])
 
 # 正例とハード負例を持たないデータを削除
 train_dataset = train_dataset.filter(
-    lambda x: (len(x["positive_passage_indices"]) > 0)
-    and (len(x["hard_negative_passage_indices"]) > 0)
+    lambda x: (
+        len(x["positive_passage_indices"]) > 0
+        and len(x["negative_passage_indices"]) > 0
+    )
 )
 valid_dataset = valid_dataset.filter(
-    lambda x: (len(x["positive_passage_indices"]) > 0)
-    and (len(x["hard_negative_passage_indices"]) > 0)
+    lambda x: (
+        len(x["positive_passage_indices"]) > 0
+        and len(x["negative_passage_indices"]) > 0
+    )
 )
 
 
-def filter_positive_passages(example: dict) -> dict:
+def filter_train_passages(example: dict) -> dict:
     """最も関連度の高いpassageを取得する"""
-    example["positive_passage"] = example["positive_passage"][0]
+    example["positive_passage_indices"] = [example["positive_passage_indices"][0]]
     return example
 
 
-train_dataset = train_dataset.map(filter_positive_passages)
+train_dataset = train_dataset.map(filter_train_passages)
 
 
-def filter_negative_passages(example: dict) -> dict:
+def filter_valid_passages(example: dict) -> dict:
     """最も関連度の高いpassageを取得する"""
-    example["positive_passage_indices"] = example["positive_passage_indices"][0]
-    example["negative_passage_indices"] = example["negative_passage_indices"][0]
+    example["positive_passage_indices"] = [example["positive_passage_indices"][0]]
+    example["negative_passage_indices"] = [example["negative_passage_indices"][0]]
     return example
 
 
-valid_dataset = valid_dataset.map(filter_negative_passages)
+valid_dataset = valid_dataset.map(filter_valid_passages)
 
 # トークナイザの読み込み
 base_model_names = "cl-tohoku/bert-base-japanese-v3"
@@ -83,15 +87,15 @@ def collate_fn(examples: list[dict]) -> dict[str, BatchEncoding | Tensor]:
 
         passage_titles.extend(
             [
-                example["positive_passage"][positive_passage_idx]["title"],
-                example["hard_negative_passage"][negative_passage_idx]["title"],
+                example["passages"][positive_passage_idx]["title"],
+                example["passages"][negative_passage_idx]["title"],
             ]
         )
 
         passage_texts.extend(
             [
-                example["positive_passage"][positive_passage_idx]["text"],
-                example["hard_negative_passage"][positive_passage_idx]["text"],
+                example["passages"][positive_passage_idx]["text"],
+                example["passages"][positive_passage_idx]["text"],
             ]
         )
 

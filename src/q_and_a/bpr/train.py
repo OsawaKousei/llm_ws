@@ -1,6 +1,21 @@
+import logging
+from logging import Formatter, StreamHandler, getLogger
+
 from model import BPRModel
 from prepare import collate_fn, tokenizer, train_dataset, valid_dataset
 from transformers import Trainer, TrainingArguments
+
+# ログの設定
+if __name__ == "__main__":
+    logger = getLogger(__name__)
+    logger.setLevel(logging.DEBUG)
+    handler_format = Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+    stream_handler = StreamHandler()
+    stream_handler.setLevel(logging.DEBUG)
+    stream_handler.setFormatter(handler_format)
+    logger.addHandler(stream_handler)
+else:
+    logger = getLogger("__main__").getChild(__name__)
 
 # パラメータ
 training_args = TrainingArguments(
@@ -9,10 +24,10 @@ training_args = TrainingArguments(
     per_gpu_eval_batch_size=32,
     learning_rate=1e-5,
     max_grad_norm=2.0,
-    num_train_epochs=1,
+    num_train_epochs=20,
     warmup_ratio=0.1,
     lr_scheduler_type="linear",
-    evaluation_strategy="epoch",
+    eval_strategy="epoch",
     logging_strategy="epoch",
     save_strategy="epoch",
     save_total_limit=1,
@@ -31,6 +46,12 @@ trainer = Trainer(
     train_dataset=train_dataset,
     eval_dataset=valid_dataset,
 )
+
+# モデルのパラメータを連続的なメモリ領域に配置
+# 以下のエラーを回避するために追記
+# ValueError: You are trying to save a non contiguous tensor:
+for param in model.parameters():
+    param.data = param.data.contiguous()
 
 # 訓練
 trainer.train()
